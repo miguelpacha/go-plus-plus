@@ -2,7 +2,7 @@
 #include <stdlib.h>
 using namespace std;
 
-enum Point{ 
+enum Point{
 	empty,
 	white,
 	black,
@@ -32,14 +32,14 @@ class Board
 			cleanup_visited();
 		}
 		void cleanup_visited(void)
-		{	
+		{
 			int i,j;
 			for(i=0;i<size;i++)
 			for(j=0;j<size;j++)
 				visited[i][j]=false;
 		}
-		void show(void) 
-		{	
+		void show(void)
+		{
 			int i,j;
 			for(i=0;i<size;i++)
 			{
@@ -63,8 +63,8 @@ class Board
 			}
 			cout<<endl;
 		}
-		void show_v(void) 
-		{	
+		void show_v(void)
+		{
 			int i,j;
 			for(i=0;i<size;i++)
 			{
@@ -80,31 +80,31 @@ class Board
 		}
 		bool alive(int x, int y)
 		{
-			visited[x][y] = true;			
-			bool result=false;
-			if (0<x)
-				if (arr[x-1][y]==empty) return true;
-				else if (arr[x-1][y]==arr[x][y] && !visited[x-1][y])
-					result |= alive(x-1,y);
-			if (0<y)
-				if (arr[x][y-1]==empty) return true;
-				else if (arr[x][y-1]==arr[x][y] && !visited[x][y-1])
-					result |= alive(x,y-1);
-					
-			if (x<size)
-				if (arr[x+1][y]==empty) return true;
-				else if (arr[x+1][y]==arr[x][y] && !visited[x+1][y])
-					result |= alive(x+1,y);
-			if ((y<size)&&
-				(arr[x][y+1]==empty || arr[x][y+1]==arr[x][y] && !visited[x][y+1] && alive(x,y+1) )
-				)
-				 return true;
-			return result;
+			visited[x][y] = true;
+			if(((0<x)&&
+				 (arr[x-1][y]==empty
+				 || (arr[x-1][y]==arr[x][y] && !visited[x-1][y] && alive(x+1,y))))
+			|| ((0<y)&&
+				 (arr[x][y-1]==empty
+				 || (arr[x][y-1]==arr[x][y] && !visited[x][y-1] && alive(x,y-1))))
+			|| ((x<size)&&
+				 (arr[x+1][y]==empty
+				 || (arr[x+1][y]==arr[x][y] && !visited[x+1][y] && alive(x+1,y))))
+			|| ((y<size)&&
+				 (arr[x][y+1]==empty
+				 || (arr[x][y+1]==arr[x][y] && !visited[x][y+1] && alive(x,y+1))))
+			)
+			{
+				cleanup_visited();
+				return true;
+			}
+			cleanup_visited();
+			return false;
 		}
 		void put(int x, int y,Point value)
 		{
 			arr[x][y]=value;
-		}	
+		}
 };
 
 int main()
@@ -114,7 +114,11 @@ int main()
 	board.put(0,0,white);
 	board.put(0,1,white);
 	board.put(1,0,black);
-	
+	string S="";
+	while (S!="quit")
+	{
+		cin>>S;
+	}
 	board.show();
 	cout<<board.alive(0,0)<<endl;
 	board.cleanup_visited();
