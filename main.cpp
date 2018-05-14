@@ -40,6 +40,7 @@ class Board
 		}
 		void show(void)
 		{
+			cout<<endl<<endl;
 			int i,j;
 			for(i=0;i<size;i++)
 			{
@@ -47,19 +48,24 @@ class Board
 					switch (arr[i][j])
 					{
 						case(empty):
-							cout<<"+ ";
+							cout<<".  ";
 							break;
 						case(white):
-							cout<<"O ";
+							cout<<"O  ";
 							break;
 						case(black):
-							cout<<"X ";
+							cout<<"X  ";
 							break;
 						default:
 							cout<<endl<<"algo errado no codigo "<<endl;
 							return;
 					}
-				cout<<endl;
+				cout<<" "<<i+1<<endl<<endl;
+			}
+			for(j=1;j<=size;j++)
+			{
+				cout<<j<<" ";
+				if (j<10) cout<<" ";
 			}
 			cout<<endl;
 		}
@@ -80,6 +86,7 @@ class Board
 		}
 		bool alive(int x, int y)
 		{
+			x=1; y=1;
 			visited[x][y] = true;
 			if(((0<x)&&
 				 (arr[x-1][y]==empty
@@ -101,26 +108,39 @@ class Board
 			cleanup_visited();
 			return false;
 		}
-		void put(int x, int y,Point value)
+		bool put(int x, int y,Point value)
 		{
-			arr[x][y]=value;
+			x-=1;y-=1;
+			if (arr[x][y]==empty)
+			{
+				arr[x][y]=value;
+			}else{
+				return false;
+			}
+			return true;
 		}
 };
 
 int main()
 {
-	Board board(5);
+	Board board(19);
 	board.show();
-	board.put(0,0,white);
-	board.put(0,1,white);
-	board.put(1,0,black);
 	string S="";
-	while (S!="quit")
+	int a=0, b=0;
+	Point current_player=black;
+	while (a!=-1)
 	{
-		cin>>S;
+		cout<<"Digite a sua jogada ";
+		cin>>a>>b;
+		if(board.put(a,b,current_player))
+		{
+			board.show();
+			current_player = (current_player==black) ? white : black;
+		}else{
+			cout<<"Jogada invalida"<<endl;
+		}
 	}
-	board.show();
-	cout<<board.alive(0,0)<<endl;
+	cout<<board.alive(1,1)<<endl;
 	board.cleanup_visited();
 	return 0;
 }
