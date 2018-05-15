@@ -2,19 +2,17 @@
 #include <stdlib.h>
 using namespace std;
 
-enum Point{
-	empty,
-	white,
-	black,
-};
+enum Point{	empty=0, white=1, black=-1 };
+enum Play{ pass=0, valid=1, ko=-1, suicide=-2, occupied=-3 };
 
 class Board
 {
-	int size;
-	Point ** arr;
-	bool ** visited;
 	public:
-		Board(int s)
+		int size;
+		Point ** arr;
+		bool ** visited;
+		Board(){};
+		void setup(int s)
 		{
 			size=s;
 			int i,j;
@@ -38,12 +36,21 @@ class Board
 			for(j=0;j<size;j++)
 				visited[i][j]=false;
 		}
+		void delete_visited(void)
+		{
+			int i,j;
+			for(i=0;i<size;i++)
+			for(j=0;j<size;j++)
+			if(visited[i][j])
+				arr[i][j]=empty;
+		}
 		void show(void)
 		{
 			cout<<endl<<endl;
 			int i,j;
 			for(i=0;i<size;i++)
 			{
+				cout<<"  ";
 				for(j=0;j<size;j++)
 					switch (arr[i][j])
 					{
@@ -62,6 +69,7 @@ class Board
 					}
 				cout<<" "<<i+1<<endl<<endl;
 			}
+			cout<<"  ";
 			for(j=1;j<=size;j++)
 			{
 				cout<<j<<" ";
@@ -86,18 +94,17 @@ class Board
 		}
 		bool alive(int x, int y)
 		{
-			x=1; y=1;
 			visited[x][y] = true;
-			if(((0<x)&&
+			if(((0<x-1)&&
 				 (arr[x-1][y]==empty
 				 || (arr[x-1][y]==arr[x][y] && !visited[x-1][y] && alive(x+1,y))))
-			|| ((0<y)&&
+			|| ((0<y-1)&&
 				 (arr[x][y-1]==empty
 				 || (arr[x][y-1]==arr[x][y] && !visited[x][y-1] && alive(x,y-1))))
-			|| ((x<size)&&
+			|| ((x+1<size)&&
 				 (arr[x+1][y]==empty
 				 || (arr[x+1][y]==arr[x][y] && !visited[x+1][y] && alive(x+1,y))))
-			|| ((y<size)&&
+			|| ((y+1<size)&&
 				 (arr[x][y+1]==empty
 				 || (arr[x][y+1]==arr[x][y] && !visited[x][y+1] && alive(x,y+1))))
 			)
@@ -108,22 +115,89 @@ class Board
 			cleanup_visited();
 			return false;
 		}
-		bool put(int x, int y,Point value)
+		void mark_group(int x, int y)
 		{
+			visited[x][y] = true;
+			if( (0<x-1) && arr[x-1][y]==arr[x][y] && !visited[x-1][y] )
+				mark_group(x-1,y);
+			if( (0<y-1) && arr[x][y-1]==arr[x][y] && !visited[x][y-1] )
+				mark_group(x,y-1);
+			if( (size>x+1) && arr[x+1][y]==arr[x][y] && !visited[x+1][y] )
+				mark_group(x+1,y);
+			if( (size>y+1) && arr[x][y+1]==arr[x][y] && !visited[x][y+1] )
+				mark_group(x,y+1);				
+			return;
+		}
+		void capture_group(int x, int y)
+		{
+			cout<<"capturing"<<x<<" "<<y<<endl;
+			mark_group(x,y);
+			delete_visited();
+			cleanup_visited();
+		}
+		
+		Play put(int x, int y,Point value)
+		{
+			if (x==0 && y==0)
+				return pass;
 			x-=1;y-=1;
-			if (arr[x][y]==empty)
+			if (x<size && y<size && arr[x][y]==empty)
 			{
+				bool capture=false;
 				arr[x][y]=value;
+				if (x+1<size && arr[x][y]==-arr[x+1][y] && !alive(x+1,y))
+				{
+					capture_group(x+1,y);
+					capture=true;
+				}
+				if (x-1>0 && arr[x][y]==-arr[x-1][y] && !alive(x-1,y))
+				{
+					capture_group(x-1,y);
+					capture=true;
+				}
+				if (y+1<size && arr[x][y]==-arr[x][y+1]&& !alive(x,y+1))
+				{
+					capture_group(x,y+1);
+					capture=true;
+				}
+				if (y-1>0 && arr[x][y]==-arr[x][y-1] && !alive(x,y-1))
+				{
+					capture_group(x,y-1);
+					capture=true;
+				}	
+				if (!capture && !alive(x,y))
+				{
+					arr[x][y]=empty;
+					return suicide;
+				}
 			}else{
-				return false;
+				return occupied;
 			}
-			return true;
+			return valid;
 		}
 };
 
 int main()
 {
-	Board board(19);
+	int option, size;
+	cout<<"Bem vindo! 0 para inicar nova partida padrao, 1 para tabuleiro diferente, 2 para carregar arquivo ";
+	cin>>option;
+	Board board(void);
+	switch (option)
+	{
+		case(0):
+			size=19;
+		case(1):
+			cout<< size;
+			cin>>size;
+		board.setup(size);
+		break;
+		case(2):
+			break;
+		default:
+			break;
+	}
+
 	board.show();
 	string S="";
 	int a=0, b=0;
@@ -132,12 +206,24 @@ int main()
 	{
 		cout<<"Digite a sua jogada ";
 		cin>>a>>b;
-		if(board.put(a,b,current_player))
+		switch(board.put(a,b,current_player))
 		{
-			board.show();
-			current_player = (current_player==black) ? white : black;
-		}else{
-			cout<<"Jogada invalida"<<endl;
+			case (valid):
+				board.show();
+				current_player = (Point)-current_player ;
+				break;
+			case (suicide):
+				cout<<"Jogada suicida"<<endl;
+				break;
+			case (occupied):
+				cout<<"Ponto ja ocupado"<<endl;
+				break;
+			case (ko):
+				cout<<"Jogada repetida"<<endl;
+				break;
+			case (pass):
+				cout<<"Passou a vez"<<endl;
+				break;
 		}
 	}
 	cout<<board.alive(1,1)<<endl;
