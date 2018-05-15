@@ -1,1 +1,4 @@
+$ cat .gitignore
 out
+.DS_Store
+Projeto Final.txt
