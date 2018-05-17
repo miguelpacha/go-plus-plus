@@ -7,10 +7,10 @@ enum Play{ pass=0, valid=1, ko=-1, suicide=-2, occupied=-3 };
 
 class Board
 {
-	public:
 		int size;
 		Point ** arr;
 		bool ** visited;
+	public:
 		Board(){};
 		void setup(int s)
 		{
@@ -182,16 +182,17 @@ int main()
 	int option, size;
 	cout<<"Bem vindo! 0 para inicar nova partida padrao, 1 para tabuleiro diferente, 2 para carregar arquivo ";
 	cin>>option;
-	Board board(void);
+	Board board;
 	switch (option)
 	{
 		case(0):
 			size=19;
+			board.setup(size);
+			break;
 		case(1):
-			cout<< size;
 			cin>>size;
-		board.setup(size);
-		break;
+			board.setup(size);
+			break;
 		case(2):
 			break;
 		default:
